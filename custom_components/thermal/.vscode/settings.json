@@ -1,0 +1,9 @@
+{
+    "python.analysis.disabled": [
+        "reportMissingImports"
+    ],
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingImports": "none"
+    },
+    "todo-tree.tree.showBadges": false
+}

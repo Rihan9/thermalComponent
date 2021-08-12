@@ -1,0 +1,62 @@
+{
+    "title": "Thermal Comfort",
+    "config": {
+        "step": {
+            "user": {
+                "title": "Thermal Comfort",
+                "description": "Enter the following data to perform thermal comfort calculation",
+                "data": {
+                    "temperature_sensor": "Temperature sensor",
+                    "humidity_sensor": "Humidity sensor",
+                    "wind_sensor": "Wind sensor",
+                    "type": "Type",
+                    "friendly_name": "Name",
+                    "addMoreSensor": "Add another"
+                }
+            },
+            "init":{
+                "title": "Thermal Comfort",
+                "description": "Enter the following data to perform thermal comfort calculation",
+                "data": {
+                    "type": "Operation"
+                }
+            }
+        },
+        "error": {
+        },
+        "abort": {
+            "unaxpected_behavior": "Unaxpected Behavior"
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "title": "Thermal Comfort",
+                "description": "Enter the following data to perform thermal comfort calculation",
+                "data": {
+                    "temperature_sensor": "Temperature sensor",
+                    "humidity_sensor": "Humidity sensor",
+                    "wind_sensor": "Wind sensor",
+                    "type": "Type",
+                    "friendly_name": "Name",
+                    "addMoreSensor": "Add another"
+                }
+            },
+            "init":{
+                "title": "Thermal Comfort",
+                "description": "You can add, remove or update a sensor",
+                "data": {
+                    "type": "Operation",
+                    "temperature_sensor": "Temperature sensor",
+                    "humidity_sensor": "Humidity sensor",
+                    "wind_sensor": "Wind sensor",
+                    "sensors": "Select sensor"
+                }
+            }
+        },
+        "error": {
+        },
+        "abort": {
+            "unaxpected_behavior": "Unaxpected Behavior"
+        }}
+}

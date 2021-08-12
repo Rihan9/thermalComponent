@@ -1,0 +1,3 @@
+TODO: risolvere l'errore relativo alla configurazione di config_entry quando esse già esistono. Ipotizzo sia dovuto al fatto che il setup entry finisca per dare true prima che le singole entità abbiano finito la configurazione
+TODO: verificare il servizio di update e delete
+DONE: aggiungere al servizio di delete l'effettiva delete dell'entity prima di avviare il reload.

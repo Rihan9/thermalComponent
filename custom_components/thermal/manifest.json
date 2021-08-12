@@ -1,0 +1,12 @@
+{
+    "domain": "thermal",
+    "name": "Thermal Comfort",
+    "version": "2021.8.1",
+    "documentation": "https://pythermalcomfort.readthedocs.io/en/latest/",
+    "dependencies": [],
+    "codeowners": ["@rihan"],
+    "requirements": [],
+    "iot_class": "calculated",
+    "config_flow": true
+  }
+  

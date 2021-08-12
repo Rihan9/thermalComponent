@@ -4,16 +4,17 @@
 
 ### Install from HACS:
 
-- Add this repository (https://github.com/Rihan9/uefySecurityComponent) on your hacs installation (Category: Integration) and search for "Eufy Security" integration.
-- After restart of home assistant go in setup -> Integration -> Add -> "Eufy Security".
-- You need to insert your credentials for Eufy Security and your prefered two factor authentication method. 
+- Add this repository (https://github.com/Rihan9/thermalComponent) on your hacs installation (Category: Integration) and search for "Thermal Comfort" integration.
+- After restart of home assistant go in setup -> Integration -> Add -> "Thermal Comfort".
+- There are 2 main screen on setup:
+    - the first screen is used to set the name of the sensor end the type. It can be internal or external. The only difference is that a wind sensor is required in the external   sensor 
+    - the second screen is used to set the sensors used on calculation. You can add multiple sensors directly on first setup, selecting the "add more" checkbox.
 
-#### PLEASE NOTE: 
-- the two factor authentication is required if you don't want to relogin every month
-- the two factor authentication method selected need to be configurated on the official app. Please refer to Official eufy manual to do it.
-- if you don't want to use 2FA, you can select "None", but make sure it's turned off in the app too. Otherwise the 2fa is mandatory and the standard email method will be used.
+The configure flow can be used to add more sensors later, update or remove existing sensors.
 
 
 ## TODO:
-- [ ] add attribute to monitor charge state (disconnected, charged, charged complete maybe?) 
-- [X] correct the names of the sensor entity derived from device attribute in order to add device name at the beginning 
+
+- [ ] the reload or remove flow for config entry does not seem to work properly. It needs to be fixed before first release
+- [ ] the update and delete operation on config flow need to be tested further
+

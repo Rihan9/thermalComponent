@@ -32,18 +32,6 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_devices):
     _LOGGER.debug('config_entry: ' + str(config_entry.data))# +json.dumps(config_entry.data))
     devices = []
-    # if(config_entry.data.get('clothing_id') != None and config_entry.data.get('methabolic_id') != None):
-    #     _LOGGER.info('config for select is not ready yet. abort to wait it')
-    #     return True
-    # entity_registry = await er.async_get_registry(hass)
-        # meth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('methabolic_id')) # c
-        # cloth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('clothing_id'))
-    # else:
-    #     meth = 'select.methabolic'
-    #     cloth = 'select.clothing'
-    # meth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('methabolic_id')) # c
-    # cloth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('clothing_id'))
-    # _LOGGER.debug('meth: %s, cloth: %s' % (meth, cloth))# +json.dumps(config_entry.data))
     sensor_data = {
     #     'full_load': True
         'last_trigger_by': 'init', 
@@ -65,11 +53,14 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         sensor_data[sensor.get(ATTR_FRIENDLY_NAME).replace(' ', '_').lower() + '_id'] = s.unique_id
     _LOGGER.debug('number of sensors: %s' % len(devices))
     async_add_devices(devices)
-    
-    toUpdate = False
-    for sensor_id in sensor_data.keys():
-        toUpdate = toUpdate or sensor_id not in config_entry.data
-    # if(toUpdate):
+    entity_registry = await er.async_get_registry(hass)
+    for old_entity_id in list(filter(lambda d : d.endswith('_id') and not d in ['clothing_id', 'methabolic_id'] and not d in sensor_data.keys(), config_entry.data.keys())):
+        s = entity_registry.async_get_entity_id('sensor', DOMAIN, config_entry.data.get(old_entity_id))
+        _LOGGER.info('serch for %s with id %s' % (s, config_entry.data.get(old_entity_id)))
+        if(s is not None):
+            _LOGGER.info('removing entity: %s' % (s))
+            entity_registry.async_remove(s)
+
     hass.config_entries.async_update_entry(config_entry, data={'last_trigger_by': 'init',**config_entry.data, **sensor_data})
 
 async def async_unload_entry(hass, entry):

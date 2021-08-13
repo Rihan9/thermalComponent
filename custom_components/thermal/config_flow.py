@@ -105,6 +105,20 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self._operation = None
         self.sensors = self.config_entry.data.get(CONF_SENSORS)
         self.currentSensor = None
+
+
+    def remove_from_sensors(self, entity_name):
+        sensors = list(filter(
+            lambda a: a.get(ATTR_FRIENDLY_NAME) != entity_name, 
+            self.sensors
+        ))
+        return sensors
+    
+    def update_to_sensors(self, sensor):
+        sensors = self.remove_from_sensors(sensor.get(ATTR_FRIENDLY_NAME))
+        sensors.append(sensor)
+        return sensors
+
     
     async def async_step_init(self, user_input=None):
         """Manage the options."""
@@ -143,31 +157,32 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 data_schema=schema
             )
         if(CONF_SENSORS in user_input and self._operation == 'delete'):
-            self.sensors = list(filter(
-                lambda a: a.get(ATTR_FRIENDLY_NAME) != user_input.get(CONF_SENSORS, {}).get(ATTR_FRIENDLY_NAME), 
-                self.sensors
-            ))
+            # self.sensors = list(filter(
+            #     lambda a: a.get(ATTR_FRIENDLY_NAME) != user_input.get(CONF_SENSORS, {}).get(ATTR_FRIENDLY_NAME), 
+            #     self.sensors
+            # ))
             return self.async_create_entry(
                 title='',
                 data={
                     'last_trigger_by': 'update',
                     'operations': self._operation,
-                    CONF_SENSORS: self.sensors
+                    CONF_SENSORS: self.remove_from_sensors(user_input.get(CONF_SENSORS))
                 }
             )
         if(CONF_SENSORS not in user_input and self._operation == 'update'):
             _LOGGER.debug('currentSensor: %s, user_input: %s' % (self.currentSensor, user_input))
             self.currentSensor = {**self.currentSensor, **user_input}
             _LOGGER.debug('updatedcurrentSensor: %s' % (self.currentSensor))
-            self.sensors = list(filter(lambda a: a.get(ATTR_FRIENDLY_NAME) != user_input.get(CONF_SENSORS, {}).get(ATTR_FRIENDLY_NAME), self.sensors))
-            self.sensors.append(self.currentSensor)
+            # self.sensors = list(filter(lambda a: a.get(ATTR_FRIENDLY_NAME) != user_input.get(CONF_SENSORS, {}).get(ATTR_FRIENDLY_NAME), self.sensors))
+            # self.sensors.append(self.currentSensor)
+
             _LOGGER.debug('sensors: %s' % (self.sensors))
             return self.async_create_entry(
                 title='',
                 data={
                     'last_trigger_by': 'update',
                     'operations': self._operation,
-                    CONF_SENSORS: self.sensors
+                    CONF_SENSORS: self.update_to_sensors(self.currentSensor)
                 }
             )
         

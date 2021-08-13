@@ -47,14 +47,7 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         'last_trigger_by': 'init','clothing_id': cloth_id,'methabolic_id': meth_id}})
 
 async def async_unload_entry(hass, entry):
-    _LOGGER.debug('unload config_entry: ' + str(entry.data))# +json.dumps(config_entry.data))
-    # entity_registry = await er.async_get_registry(hass)
-    # for key_unique_id in list(filter(lambda i : i.endswith('_id') and i in ['clothing_id', 'methabolic_id'], entry.data.keys())):
-    #     _LOGGER.debug('entity_unique_id: %s' % entry.data.get(key_unique_id))
-    #     entity_id = entity_registry.async_get_entity_id('select', DOMAIN, entry.data.get(key_unique_id))
-    #     _LOGGER.debug('entity_id: %s' % entity_id)
-    #     if(entity_id is not None):
-    #         entity_registry.async_remove(entity_id)
+    _LOGGER.debug('unload config_entry: ' + str(entry.data))
     return True
 
 class Configurator(SelectEntity, RestoreEntity):

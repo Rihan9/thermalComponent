@@ -24,7 +24,8 @@ from .const import (
     METHABOLIC_COEFICENT_VALUES,
 #    EXTERNAL_WIND_FACTOR,
     CONF_MEAN_TEMPERATURE_SENSOR,
-    EVENT_SELECT_UPDATE
+    EVENT_SELECT_UPDATE,
+    EVENT_REQUEST_SELECT_UPDATE
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -153,10 +154,17 @@ class PmvSensor(Entity):
             async_dispatcher_connect(self.hass, EVENT_SELECT_UPDATE, self.select_listener)
         )
 
+        async_dispatcher_send(self.hass, EVENT_REQUEST_SELECT_UPDATE)
+
     def select_listener(self, data):
         if('key' in data):
             self.input_sensors[data.get('key')]['value'] = data.get('value')
-            self.async_schedule_update_ha_state(True)
+            if(self.entity_id is not None):
+                self.async_schedule_update_ha_state(True)
+            else:
+                self.hass.async_create_task(
+                    self.async_update()
+                )
 
     async def async_will_remove_from_hass(self):
         _LOGGER.debug('%s removed from ha' % self.name)

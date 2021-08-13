@@ -11,7 +11,14 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import entity_registry as er
 
 
-from .const import CLOTHING_COEFICENT_VALUES, METHABOLIC_COEFICENT_VALUES, DOMAIN, EVENT, DATA_UPDATED, EVENT_SELECT_UPDATE
+from .const import (
+    CLOTHING_COEFICENT_VALUES, 
+    METHABOLIC_COEFICENT_VALUES, DOMAIN, 
+    EVENT, 
+    DATA_UPDATED, 
+    EVENT_SELECT_UPDATE, 
+    EVENT_REQUEST_SELECT_UPDATE
+)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,7 +67,16 @@ class Configurator(SelectEntity, RestoreEntity):
         self._current_option = None# self.options[0]
         self._device_state_attributes = {}
         self._unique_id = unique_id
+        self.handlers = []
+        self.handlers.append(
+            async_dispatcher_connect(self.hass, EVENT_REQUEST_SELECT_UPDATE, self.select_listener)
+        )
     
+    def select_listener(self):
+        async_dispatcher_send(self.hass, EVENT_SELECT_UPDATE, {
+            'key': self._entries_type,
+            'value': self._device_state_attributes['value']
+        })
     @property
     def unique_id(self):
         return self._unique_id
@@ -100,7 +116,14 @@ class Configurator(SelectEntity, RestoreEntity):
     @property
     def device_state_attributes(self):
         return self._device_state_attributes
+    
 
+    async def async_will_remove_from_hass(self):
+        await super().async_will_remove_from_hass()
+        _LOGGER.debug('%s removed from ha' % self.name)
+        for handler in self.handlers:
+            handler()
+        
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()

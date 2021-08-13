@@ -17,6 +17,7 @@ CONF_SENSORS = 'sensors'
 
 EVENT = f"{DOMAIN}_selects_setup_complete"
 EVENT_SELECT_UPDATE = f"{DOMAIN}_selects_update"
+EVENT_REQUEST_SELECT_UPDATE = f"{DOMAIN}_request_selects_update"
 EVENT_SENSORS = f"{DOMAIN}_sensors_setup_complete"
 
 CONF_INTERNAL_TEMPERATURE_SENSOR = 'internal_temperature_sensor'

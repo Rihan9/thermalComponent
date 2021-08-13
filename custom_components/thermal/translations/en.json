@@ -13,13 +13,6 @@
                     "friendly_name": "Name",
                     "addMoreSensor": "Add another"
                 }
-            },
-            "init":{
-                "title": "Thermal Comfort",
-                "description": "Enter the following data to perform thermal comfort calculation",
-                "data": {
-                    "type": "Operation"
-                }
             }
         },
         "error": {

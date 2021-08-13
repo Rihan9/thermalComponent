@@ -1,29 +1,21 @@
-import logging, json, math, uuid
-from .utils import pmvEN, get_mean_radiant_temperature
+import logging, uuid
+from .utils import pmvEN
 import voluptuous as vol
-from homeassistant.helpers.entity import Entity, async_generate_entity_id
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers import entity_registry as er
-from homeassistant.components.sensor import SensorEntity, ENTITY_ID_FORMAT, PLATFORM_SCHEMA
-from homeassistant.const import (ATTR_FRIENDLY_NAME, CONF_ICON_TEMPLATE, CONF_SENSORS, STATE_UNAVAILABLE, STATE_UNKNOWN)
+from homeassistant.const import (ATTR_FRIENDLY_NAME, STATE_UNAVAILABLE, STATE_UNKNOWN)
 from homeassistant.helpers.event import async_track_state_change
 from homeassistant.helpers.dispatcher import async_dispatcher_send, async_dispatcher_connect
-import homeassistant.helpers.config_validation as cv
 
 from .const import (
     DOMAIN, 
-    EVENT_SENSORS,
     RELATIVE_AIR_SPEED, 
     CONF_WIND_SENSOR, 
     CONF_TYPE, 
     CONF_TEMPERATURE_SENSOR, 
-    CONF_EXTERNAL_TEMPERATURE_SENSOR, 
     CONF_HUMIDITY_SENSOR, 
-    CONF_METHABOLIC_ENTITY, 
-    CONF_CLOTHING_ENTITY,
     CLOTHING_COEFICENT_VALUES,
     METHABOLIC_COEFICENT_VALUES,
-#    EXTERNAL_WIND_FACTOR,
-    CONF_MEAN_TEMPERATURE_SENSOR,
     EVENT_SELECT_UPDATE,
     EVENT_REQUEST_SELECT_UPDATE
 )
@@ -31,10 +23,9 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config_entry, async_add_devices):
-    _LOGGER.debug('config_entry: ' + str(config_entry.data))# +json.dumps(config_entry.data))
+    _LOGGER.debug('config_entry: ' + str(config_entry.data))
     devices = []
     sensor_data = {
-    #     'full_load': True
         'last_trigger_by': 'init', 
     }
     for sensor in config_entry.data.get('sensors'):
@@ -103,7 +94,6 @@ class PmvSensor(Entity):
         """Initialize the sensor."""
         self._state = 0
         self.hass = hass
-        # self.entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, device_id, hass=hass)
         self._sensor_type = sensor_type
         self._device_state_attributes = {}
         self._name = name

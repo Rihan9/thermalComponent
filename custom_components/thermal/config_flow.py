@@ -157,10 +157,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 data_schema=schema
             )
         if(CONF_SENSORS in user_input and self._operation == 'delete'):
-            # self.sensors = list(filter(
-            #     lambda a: a.get(ATTR_FRIENDLY_NAME) != user_input.get(CONF_SENSORS, {}).get(ATTR_FRIENDLY_NAME), 
-            #     self.sensors
-            # ))
             return self.async_create_entry(
                 title='',
                 data={
@@ -173,8 +169,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             _LOGGER.debug('currentSensor: %s, user_input: %s' % (self.currentSensor, user_input))
             self.currentSensor = {**self.currentSensor, **user_input}
             _LOGGER.debug('updatedcurrentSensor: %s' % (self.currentSensor))
-            # self.sensors = list(filter(lambda a: a.get(ATTR_FRIENDLY_NAME) != user_input.get(CONF_SENSORS, {}).get(ATTR_FRIENDLY_NAME), self.sensors))
-            # self.sensors.append(self.currentSensor)
 
             _LOGGER.debug('sensors: %s' % (self.sensors))
             return self.async_create_entry(

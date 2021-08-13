@@ -1,21 +1,17 @@
 import logging, uuid
 
-from homeassistant.helpers.entity import async_generate_entity_id
 from homeassistant.helpers.dispatcher import async_dispatcher_connect, async_dispatcher_send
-from homeassistant.components.select import SelectEntity, ENTITY_ID_FORMAT 
+from homeassistant.components.select import SelectEntity 
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.core import (
     callback
 )
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import entity_registry as er
 
 
 from .const import (
     CLOTHING_COEFICENT_VALUES, 
     METHABOLIC_COEFICENT_VALUES, DOMAIN, 
-    EVENT, 
-    DATA_UPDATED, 
     EVENT_SELECT_UPDATE, 
     EVENT_REQUEST_SELECT_UPDATE
 )
@@ -49,7 +45,6 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
     devices.append(methabolic_entity)
     if(len(devices) > 0):
         async_add_devices(devices)
-    # if('methabolic_id' not in config_entry.data):
     hass.config_entries.async_update_entry(config_entry, data={**config_entry.data, **{
         'last_trigger_by': 'init','clothing_id': cloth_id,'methabolic_id': meth_id}})
 
@@ -61,10 +56,9 @@ class Configurator(SelectEntity, RestoreEntity):
     def __init__(self, hass, device_id, name, entries_type, unique_id=str(uuid.uuid4())):
         self.hass = hass
         self._device_id = device_id
-        # self.entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, device_id, hass=hass)
         self._name = name
         self._entries_type = entries_type
-        self._current_option = None# self.options[0]
+        self._current_option = None
         self._device_state_attributes = {}
         self._unique_id = unique_id
         self.handlers = []
@@ -110,9 +104,6 @@ class Configurator(SelectEntity, RestoreEntity):
             'key': self._entries_type,
             'value': self._device_state_attributes['value']
         })
-    
-    # async def async_update(self):
-    #     return True
     @property
     def device_state_attributes(self):
         return self._device_state_attributes
@@ -140,10 +131,6 @@ class Configurator(SelectEntity, RestoreEntity):
             self._device_state_attributes['value'] = METHABOLIC_COEFICENT_VALUES.get(self._current_option)
         else:
             self._device_state_attributes['value'] = CLOTHING_COEFICENT_VALUES.get(self._current_option)
-        # async_dispatcher_connect(
-        #     self.hass, DATA_UPDATED, self._schedule_immediate_update
-        # )
-        # self.async_write_ha_state()
         self.async_schedule_update_ha_state(True)
     
     @callback

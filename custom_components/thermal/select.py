@@ -11,7 +11,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers import entity_registry as er
 
 
-from .const import CLOTHING_COEFICENT_VALUES, METHABOLIC_COEFICENT_VALUES, DOMAIN, EVENT, DATA_UPDATED
+from .const import CLOTHING_COEFICENT_VALUES, METHABOLIC_COEFICENT_VALUES, DOMAIN, EVENT, DATA_UPDATED, EVENT_SELECT_UPDATE
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,51 +19,49 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_devices):
     devices = []
     #data = dict(config_entry)
+    entity_registry = await er.async_get_registry(hass)
+    meth_id = config_entry.data.get('methabolic_id', str(uuid.uuid4()))
+    cloth_id = config_entry.data.get('clothing_id', str(uuid.uuid4()))
+    meth = entity_registry.async_get_entity_id('select', DOMAIN, meth_id)
+    cloth = entity_registry.async_get_entity_id('select', DOMAIN, cloth_id)
     clothing_entity = Configurator(
         hass,
         'clothing',
         'clothing',
         'clothing',
-        unique_id=config_entry.data.get('clothing_id', str(uuid.uuid4()))
+        unique_id=cloth_id
     )
+    devices.append(clothing_entity)
     methabolic_entity = Configurator(
         hass,
         'methabolic',
         'methabolic',
         'methabolic',
-        unique_id=config_entry.data.get('methabolic_id', str(uuid.uuid4()))
+        unique_id=meth_id
     )
-    devices.append(clothing_entity)
     devices.append(methabolic_entity)
-    async_add_devices(devices)
-    async_dispatcher_send(hass, EVENT, {
-        'unique_id': config_entry.entry_id,
-        'clothing_id': clothing_entity.unique_id,
-        'methabolic_id': methabolic_entity.unique_id
-    })
-    # await hass.bus.async_fire(EVENT, {
-    #     'unique_id': config_entry.entry_id,
-    #     'clothing': clothing_entity.entity_id,
-    #     'methabolic': methabolic_entity.entity_id
-    # })
-    # return True
+    if(len(devices) > 0):
+        async_add_devices(devices)
+    # if('methabolic_id' not in config_entry.data):
+    hass.config_entries.async_update_entry(config_entry, data={**config_entry.data, **{
+        'last_trigger_by': 'init','clothing_id': cloth_id,'methabolic_id': meth_id}})
 
 async def async_unload_entry(hass, entry):
     _LOGGER.debug('unload config_entry: ' + str(entry.data))# +json.dumps(config_entry.data))
-    entity_registry = await er.async_get_registry(hass)
-    for key_unique_id in list(filter(lambda i : i.endswith('_id') and i in ['clothing_id', 'methabolic_id'], entry.data.keys())):
-        _LOGGER.debug('entity_unique_id: %s' % entry.data.get(key_unique_id))
-        entity_id = entity_registry.async_get_entity_id('select', DOMAIN, entry.data.get(key_unique_id))
-        _LOGGER.debug('entity_id: %s' % entity_id)
-        if(entity_id is not None):
-            entity_registry.async_remove(entity_id)
+    # entity_registry = await er.async_get_registry(hass)
+    # for key_unique_id in list(filter(lambda i : i.endswith('_id') and i in ['clothing_id', 'methabolic_id'], entry.data.keys())):
+    #     _LOGGER.debug('entity_unique_id: %s' % entry.data.get(key_unique_id))
+    #     entity_id = entity_registry.async_get_entity_id('select', DOMAIN, entry.data.get(key_unique_id))
+    #     _LOGGER.debug('entity_id: %s' % entity_id)
+    #     if(entity_id is not None):
+    #         entity_registry.async_remove(entity_id)
     return True
 
 class Configurator(SelectEntity, RestoreEntity):
     def __init__(self, hass, device_id, name, entries_type, unique_id=str(uuid.uuid4())):
         self.hass = hass
         self._device_id = device_id
-        self.entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, device_id, hass=hass)
+        # self.entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, device_id, hass=hass)
         self._name = name
         self._entries_type = entries_type
         self._current_option = None# self.options[0]
@@ -98,6 +96,11 @@ class Configurator(SelectEntity, RestoreEntity):
             self._device_state_attributes['value'] = METHABOLIC_COEFICENT_VALUES.get(self._current_option)
         else:
             self._device_state_attributes['value'] = CLOTHING_COEFICENT_VALUES.get(self._current_option)
+        
+        async_dispatcher_send(self.hass, EVENT_SELECT_UPDATE, {
+            'key': self._entries_type,
+            'value': self._device_state_attributes['value']
+        })
     
     # async def async_update(self):
     #     return True

@@ -76,6 +76,7 @@ class ThermalComfortConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title='Thermal Comfort Platform',
                     data={
+                        'last_trigger_by': 'init',
                         CONF_SENSORS: self.sensors,
                         'unique_id': str(uuid.uuid4())
                     }
@@ -142,10 +143,14 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 data_schema=schema
             )
         if(CONF_SENSORS in user_input and self._operation == 'delete'):
-            self.sensors = list(filter(lambda a: a.get(ATTR_FRIENDLY_NAME) != user_input.get(CONF_SENSORS, {}).get(ATTR_FRIENDLY_NAME), self.sensors))
+            self.sensors = list(filter(
+                lambda a: a.get(ATTR_FRIENDLY_NAME) != user_input.get(CONF_SENSORS, {}).get(ATTR_FRIENDLY_NAME), 
+                self.sensors
+            ))
             return self.async_create_entry(
                 title='',
                 data={
+                    'last_trigger_by': 'update',
                     'operations': self._operation,
                     CONF_SENSORS: self.sensors
                 }
@@ -160,6 +165,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_create_entry(
                 title='',
                 data={
+                    'last_trigger_by': 'update',
                     'operations': self._operation,
                     CONF_SENSORS: self.sensors
                 }
@@ -189,6 +195,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 return self.async_create_entry(
                     title='',
                     data={
+                        'last_trigger_by': 'update',
                         'operations': self._operation,
                         CONF_SENSORS: self.sensors
                     }

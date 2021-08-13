@@ -6,7 +6,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.components.sensor import SensorEntity, ENTITY_ID_FORMAT, PLATFORM_SCHEMA
 from homeassistant.const import (ATTR_FRIENDLY_NAME, CONF_ICON_TEMPLATE, CONF_SENSORS, STATE_UNAVAILABLE, STATE_UNKNOWN)
 from homeassistant.helpers.event import async_track_state_change
-from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.dispatcher import async_dispatcher_send, async_dispatcher_connect
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
@@ -23,7 +23,8 @@ from .const import (
     CLOTHING_COEFICENT_VALUES,
     METHABOLIC_COEFICENT_VALUES,
 #    EXTERNAL_WIND_FACTOR,
-    CONF_MEAN_TEMPERATURE_SENSOR
+    CONF_MEAN_TEMPERATURE_SENSOR,
+    EVENT_SELECT_UPDATE
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,16 +32,21 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_devices):
     _LOGGER.debug('config_entry: ' + str(config_entry.data))# +json.dumps(config_entry.data))
     devices = []
-    if(config_entry.data.get('clothing_id') != None and config_entry.data.get('methabolic_id') != None):
-        entity_registry = await er.async_get_registry(hass)
-        meth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('methabolic_id')) # c
-        cloth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('clothing_id'))
-    else:
-        meth = 'select.methabolic'
-        cloth = 'select.clothing'
-    _LOGGER.debug('meth: %s, cloth: %s' % (meth, cloth))# +json.dumps(config_entry.data))
+    # if(config_entry.data.get('clothing_id') != None and config_entry.data.get('methabolic_id') != None):
+    #     _LOGGER.info('config for select is not ready yet. abort to wait it')
+    #     return True
+    # entity_registry = await er.async_get_registry(hass)
+        # meth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('methabolic_id')) # c
+        # cloth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('clothing_id'))
+    # else:
+    #     meth = 'select.methabolic'
+    #     cloth = 'select.clothing'
+    # meth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('methabolic_id')) # c
+    # cloth = entity_registry.async_get_entity_id('select', DOMAIN, config_entry.data.get('clothing_id'))
+    # _LOGGER.debug('meth: %s, cloth: %s' % (meth, cloth))# +json.dumps(config_entry.data))
     sensor_data = {
-        'unique_id': config_entry.entry_id
+    #     'full_load': True
+        'last_trigger_by': 'init', 
     }
     for sensor in config_entry.data.get('sensors'):
         s = PmvSensor(
@@ -48,8 +54,8 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
             sensor.get(ATTR_FRIENDLY_NAME).replace(' ', '_').lower(),
             sensor.get(CONF_TEMPERATURE_SENSOR),
             sensor.get(CONF_HUMIDITY_SENSOR),
-            methabolic_entity=meth,
-            clothing_entity=cloth,
+            methabolic_entity=None,#meth,
+            clothing_entity=None,#cloth,
             name=sensor.get(ATTR_FRIENDLY_NAME),
             sensor_type=sensor.get(CONF_TYPE),
             wind_sensor=sensor.get(CONF_WIND_SENSOR),
@@ -59,18 +65,15 @@ async def async_setup_entry(hass, config_entry, async_add_devices):
         sensor_data[sensor.get(ATTR_FRIENDLY_NAME).replace(' ', '_').lower() + '_id'] = s.unique_id
     _LOGGER.debug('number of sensors: %s' % len(devices))
     async_add_devices(devices)
-    async_dispatcher_send(hass, EVENT_SENSORS, sensor_data)
-    # return True
+    
+    toUpdate = False
+    for sensor_id in sensor_data.keys():
+        toUpdate = toUpdate or sensor_id not in config_entry.data
+    # if(toUpdate):
+    hass.config_entries.async_update_entry(config_entry, data={'last_trigger_by': 'init',**config_entry.data, **sensor_data})
 
 async def async_unload_entry(hass, entry):
     _LOGGER.debug('unload config_entry: ' + str(entry.data))# +json.dumps(config_entry.data))
-    entity_registry = await er.async_get_registry(hass)
-    for key_unique_id in list(filter(lambda i : i.endswith('_id') and i not in ['clothing_id', 'methabolic_id'], entry.data.keys())):
-        _LOGGER.debug('entity_unique_id: %s' % entry.data.get(key_unique_id))
-        entity_id = entity_registry.async_get_entity_id('sensor', DOMAIN, entry.data.get(key_unique_id))
-        _LOGGER.debug('entity_id: %s' % entity_id)
-        if(entity_id is not None):
-            entity_registry.async_remove(entity_id)
     return True
 
 def describe_state(state):
@@ -154,6 +157,15 @@ class PmvSensor(Entity):
             self.handlers.append(
                 async_track_state_change(self.hass, self.input_sensors[entity_id]['entity'], self.states_listener)
             )
+        
+        self.handlers.append(
+            async_dispatcher_connect(self.hass, EVENT_SELECT_UPDATE, self.select_listener)
+        )
+
+    def select_listener(self, data):
+        if('key' in data):
+            self.input_sensors[data.get('key')]['value'] = data.get('value')
+            self.async_schedule_update_ha_state(True)
 
     async def async_will_remove_from_hass(self):
         _LOGGER.debug('%s removed from ha' % self.name)
@@ -191,6 +203,10 @@ class PmvSensor(Entity):
                 self.input_sensors[entity_id]['available'] = True
         if(self.entity_id is not None):
             self.async_schedule_update_ha_state(True)
+        else:
+            self.hass.async_create_task(
+                self.async_update()
+            )
 
     @property
     def name(self):

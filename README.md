@@ -13,8 +13,10 @@
 The configure flow can be used to add more sensors later, update or remove existing sensors.
 
 
-## TODO:
+## KNOW ISSUES:
 
-- [ ] the reload or remove flow for config entry does not seem to work properly. It needs to be fixed before first release
-- [ ] the update and delete operation on config flow need to be tested further
+- [ ] the first state of select is not sended to sensor if the select is loaded first
+- [ ] the delete operation not work: cannot find correct sensor on flow to remove
+- [ ] the update operation not work: create a new sensor with the same reference causing errors
+- [X] the reload and delete flow for config entry does not seem to work properly. It needs to be fixed before first release : FIXED
 
